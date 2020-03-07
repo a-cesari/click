@@ -89,7 +89,7 @@ def open_cmd(images):
     """
     for image in images:
         try:
-            click.echo('Opening "%s"' % image)
+            click.echo("Opening {!r}".format(image))
             if image == "-":
                 img = Image.open(click.get_binary_stdin())
                 img.filename = "-"
@@ -97,13 +97,13 @@ def open_cmd(images):
                 img = Image.open(image)
             yield img
         except Exception as e:
-            click.echo('Could not open image "%s": %s' % (image, e), err=True)
+            click.echo("Could not open image {!r}: {}".format(image, e), err=True)
 
 
 @cli.command("save")
 @click.option(
     "--filename",
-    default="processed-%04d.png",
+    default="processed-{:04}.png",
     type=click.Path(),
     help="The format for the filename.",
     show_default=True,
@@ -113,11 +113,13 @@ def save_cmd(images, filename):
     """Saves all processed images to a series of files."""
     for idx, image in enumerate(images):
         try:
-            fn = filename % (idx + 1)
-            click.echo('Saving "%s" as "%s"' % (image.filename, fn))
+            fn = filename.format(idx + 1)
+            click.echo("Saving {!r} as {!r}".format(image.filename, fn))
             yield image.save(fn)
         except Exception as e:
-            click.echo('Could not save image "%s": %s' % (image.filename, e), err=True)
+            click.echo(
+                "Could not save image {!r}: {}".format(image.filename, e), err=True
+            )
 
 
 @cli.command("display")
@@ -125,7 +127,7 @@ def save_cmd(images, filename):
 def display_cmd(images):
     """Opens all images in an image viewer."""
     for image in images:
-        click.echo('Displaying "%s"' % image.filename)
+        click.echo("Displaying {!r}".format(image.filename))
         image.show()
         yield image
 
@@ -140,7 +142,7 @@ def resize_cmd(images, width, height):
     """
     for image in images:
         w, h = (width or image.size[0], height or image.size[1])
-        click.echo('Resizing "%s" to %dx%d' % (image.filename, w, h))
+        click.echo("Resizing {!r} to {}x{}".format(image.filename, w, h))
         image.thumbnail((w, h))
         yield image
 
@@ -158,7 +160,7 @@ def crop_cmd(images, border):
         if border is not None:
             for idx, val in enumerate(box):
                 box[idx] = max(0, val - border)
-            click.echo('Cropping "%s" by %dpx' % (image.filename, border))
+            click.echo("Cropping {!r} by {}px".format(image.filename, border))
             yield copy_filename(image.crop(box), image)
         else:
             yield image
@@ -174,7 +176,7 @@ def convert_rotation(ctx, param, value):
         return (Image.ROTATE_180, 180)
     if value in ("-90", "270", "l", "left"):
         return (Image.ROTATE_270, 270)
-    raise click.BadParameter('invalid rotation "%s"' % value)
+    raise click.BadParameter("invalid rotation {!r}".format(value))
 
 
 def convert_flip(ctx, param, value):
@@ -185,7 +187,7 @@ def convert_flip(ctx, param, value):
         return (Image.FLIP_LEFT_RIGHT, "left to right")
     if value in ("tb", "topbottom", "upsidedown", "ud"):
         return (Image.FLIP_LEFT_RIGHT, "top to bottom")
-    raise click.BadParameter('invalid flip "%s"' % value)
+    raise click.BadParameter("invalid flip {!r}".format(value))
 
 
 @cli.command("transpose")
@@ -199,11 +201,11 @@ def transpose_cmd(images, rotate, flip):
     for image in images:
         if rotate is not None:
             mode, degrees = rotate
-            click.echo('Rotate "%s" by %ddeg' % (image.filename, degrees))
+            click.echo('Rotate {!r}" by {}deg'.format(image.filename, degrees))
             image = copy_filename(image.transpose(mode), image)
         if flip is not None:
             mode, direction = flip
-            click.echo('Flip "%s" %s' % (image.filename, direction))
+            click.echo("Flip {!r} {}".format(image.filename, direction))
             image = copy_filename(image.transpose(mode), image)
         yield image
 
@@ -215,7 +217,7 @@ def blur_cmd(images, radius):
     """Applies gaussian blur."""
     blur = ImageFilter.GaussianBlur(radius)
     for image in images:
-        click.echo('Blurring "%s" by %dpx' % (image.filename, radius))
+        click.echo("Blurring {!r} by {}px".format(image.filename, radius))
         yield copy_filename(image.filter(blur), image)
 
 
@@ -232,8 +234,9 @@ def smoothen_cmd(images, iterations):
     """Applies a smoothening filter."""
     for image in images:
         click.echo(
-            'Smoothening "%s" %d time%s'
-            % (image.filename, iterations, iterations != 1 and "s" or "",)
+            "Smoothening {!r} {} time{}".format(
+                image.filename, iterations, "s" if iterations != 1 else ""
+            )
         )
         for _ in range(iterations):
             image = copy_filename(image.filter(ImageFilter.BLUR), image)
@@ -245,7 +248,7 @@ def smoothen_cmd(images, iterations):
 def emboss_cmd(images):
     """Embosses an image."""
     for image in images:
-        click.echo('Embossing "%s"' % image.filename)
+        click.echo("Embossing {!r}".format(image.filename))
         yield copy_filename(image.filter(ImageFilter.EMBOSS), image)
 
 
@@ -257,7 +260,7 @@ def emboss_cmd(images):
 def sharpen_cmd(images, factor):
     """Sharpens an image."""
     for image in images:
-        click.echo('Sharpen "%s" by %f' % (image.filename, factor))
+        click.echo("Sharpen {!r} by {}".format(image.filename, factor))
         enhancer = ImageEnhance.Sharpness(image)
         yield copy_filename(enhancer.enhance(max(1.0, factor)), image)
 
@@ -279,12 +282,12 @@ def paste_cmd(images, left, right):
             yield image
         return
 
-    click.echo('Paste "%s" on "%s"' % (to_paste.filename, image.filename))
+    click.echo("Paste {!r} on {!r}".format(to_paste.filename, image.filename))
     mask = None
     if to_paste.mode == "RGBA" or "transparency" in to_paste.info:
         mask = to_paste
     image.paste(to_paste, (left, right), mask)
-    image.filename += "+" + to_paste.filename
+    image.filename += "+{}".format(to_paste.filename)
     yield image
 
     for image in imageiter:

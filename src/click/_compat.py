@@ -510,7 +510,7 @@ def _wrap_io_open(file, mode, encoding, errors):
     if not PY2 or binary:
         return io.open(file, mode, **kwargs)
 
-    f = io.open(file, "b" + mode.replace("t", ""))
+    f = io.open(file, "{}b".format(mode.replace("t", "")))
     return _make_text_stream(f, **kwargs)
 
 
@@ -535,10 +535,10 @@ def open_stream(filename, mode="r", encoding=None, errors="strict", atomic=False
     # Some usability stuff for atomic writes
     if "a" in mode:
         raise ValueError(
-            "Appending to an existing file is not supported, because that "
-            "would involve an expensive `copy`-operation to a temporary "
-            "file. Open the file in normal `w`-mode and copy explicitly "
-            "if that's what you're after."
+            "Appending to an existing file is not supported, because that"
+            " would involve an expensive `copy`-operation to a temporary"
+            " file. Open the file in normal `w`-mode and copy explicitly"
+            " if that's what you're after."
         )
     if "x" in mode:
         raise ValueError("Use the `overwrite`-parameter instead.")
@@ -565,7 +565,7 @@ def open_stream(filename, mode="r", encoding=None, errors="strict", atomic=False
     while True:
         tmp_filename = os.path.join(
             os.path.dirname(filename),
-            ".__atomic-write%08x" % (random.randrange(1 << 32),),
+            ".__atomic-write{:08x}".format(random.randrange(1 << 32)),
         )
         try:
             fd = os.open(tmp_filename, flags, 0o666 if perm is None else perm)

@@ -98,7 +98,7 @@ def get_completion_script(prog_name, complete_var, shell):
     return (
         script
         % {
-            "complete_func": "_%s_completion" % cf_name,
+            "complete_func": "_{}_completion".format(cf_name),
             "script_names": prog_name,
             "autocomplete_var": complete_var,
         }
@@ -349,7 +349,7 @@ def do_complete_fish(cli, prog_name):
 
     for item in get_choices(cli, prog_name, args, incomplete):
         if item[1]:
-            echo("%(arg)s\t%(desc)s" % {"arg": item[0], "desc": item[1]})
+            echo("{arg}\t{desc}".format(arg=item[0], desc=item[1]))
         else:
             echo(item[0])
 

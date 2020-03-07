@@ -158,10 +158,10 @@ class Choice(ParamType):
         self.case_sensitive = case_sensitive
 
     def get_metavar(self, param):
-        return "[%s]" % "|".join(self.choices)
+        return "[{}]".format("|".join(self.choices))
 
     def get_missing_message(self, param):
-        return "Choose from:\n\t%s." % ",\n\t".join(self.choices)
+        return "Choose from:\n\t{}.".format(",\n\t".join(self.choices))
 
     def convert(self, value, param, ctx):
         # Match through normalization and case sensitivity
@@ -194,13 +194,15 @@ class Choice(ParamType):
             return normed_choices[normed_value]
 
         self.fail(
-            "invalid choice: %s. (choose from %s)" % (value, ", ".join(self.choices)),
+            "invalid choice: {}. (choose from {})".format(
+                value, ", ".join(self.choices)
+            ),
             param,
             ctx,
         )
 
     def __repr__(self):
-        return "Choice(%r)" % list(self.choices)
+        return "Choice({!r})".format(list(self.choices))
 
 
 class DateTime(ParamType):
@@ -262,7 +264,7 @@ class IntParamType(ParamType):
         try:
             return int(value)
         except ValueError:
-            self.fail("%s is not a valid integer" % value, param, ctx)
+            self.fail("{} is not a valid integer".format(value), param, ctx)
 
     def __repr__(self):
         return "INT"
@@ -299,28 +301,32 @@ class IntRange(IntParamType):
         ):
             if self.min is None:
                 self.fail(
-                    "%s is bigger than the maximum valid value %s." % (rv, self.max),
+                    "{} is bigger than the maximum valid value {}.".format(
+                        rv, self.max
+                    ),
                     param,
                     ctx,
                 )
             elif self.max is None:
                 self.fail(
-                    "%s is smaller than the minimum valid value "
-                    "%s." % (rv, self.min),
+                    "{} is smaller than the minimum valid value {}.".format(
+                        rv, self.min
+                    ),
                     param,
                     ctx,
                 )
             else:
                 self.fail(
-                    "%s is not in the valid range of %s to %s."
-                    % (rv, self.min, self.max),
+                    "{} is not in the valid range of {} to {}.".format(
+                        rv, self.min, self.max
+                    ),
                     param,
                     ctx,
                 )
         return rv
 
     def __repr__(self):
-        return "IntRange(%r, %r)" % (self.min, self.max)
+        return "IntRange({}, {})".format(self.min, self.max)
 
 
 class FloatParamType(ParamType):
@@ -330,7 +336,9 @@ class FloatParamType(ParamType):
         try:
             return float(value)
         except ValueError:
-            self.fail("%s is not a valid floating point value" % value, param, ctx)
+            self.fail(
+                "{} is not a valid floating point value".format(value), param, ctx
+            )
 
     def __repr__(self):
         return "FLOAT"
@@ -367,28 +375,32 @@ class FloatRange(FloatParamType):
         ):
             if self.min is None:
                 self.fail(
-                    "%s is bigger than the maximum valid value %s." % (rv, self.max),
+                    "{} is bigger than the maximum valid value {}.".format(
+                        rv, self.max
+                    ),
                     param,
                     ctx,
                 )
             elif self.max is None:
                 self.fail(
-                    "%s is smaller than the minimum valid value "
-                    "%s." % (rv, self.min),
+                    "{} is smaller than the minimum valid value {}.".format(
+                        rv, self.min
+                    ),
                     param,
                     ctx,
                 )
             else:
                 self.fail(
-                    "%s is not in the valid range of %s to %s."
-                    % (rv, self.min, self.max),
+                    "{} is not in the valid range of {} to {}.".format(
+                        rv, self.min, self.max
+                    ),
                     param,
                     ctx,
                 )
         return rv
 
     def __repr__(self):
-        return "FloatRange(%r, %r)" % (self.min, self.max)
+        return "FloatRange({}, {})".format(self.min, self.max)
 
 
 class BoolParamType(ParamType):
@@ -402,7 +414,7 @@ class BoolParamType(ParamType):
             return True
         elif value in ("false", "f", "0", "no", "n"):
             return False
-        self.fail("%s is not a valid boolean" % value, param, ctx)
+        self.fail("{} is not a valid boolean".format(value), param, ctx)
 
     def __repr__(self):
         return "BOOL"
@@ -419,7 +431,7 @@ class UUIDParameterType(ParamType):
                 value = value.encode("ascii")
             return uuid.UUID(value)
         except ValueError:
-            self.fail("%s is not a valid UUID value" % value, param, ctx)
+            self.fail("{} is not a valid UUID value".format(value), param, ctx)
 
     def __repr__(self):
         return "UUID"
@@ -504,8 +516,9 @@ class File(ParamType):
             return f
         except (IOError, OSError) as e:  # noqa: B014
             self.fail(
-                "Could not open file: %s: %s"
-                % (filename_to_ui(value), get_streerror(e),),
+                "Could not open file: {}: {}".format(
+                    filename_to_ui(value), get_streerror(e)
+                ),
                 param,
                 ctx,
             )
@@ -597,34 +610,40 @@ class Path(ParamType):
                 if not self.exists:
                     return self.coerce_path_result(rv)
                 self.fail(
-                    '%s "%s" does not exist.' % (self.path_type, filename_to_ui(value)),
+                    "{} {!r} does not exist.".format(
+                        self.path_type, filename_to_ui(value)
+                    ),
                     param,
                     ctx,
                 )
 
             if not self.file_okay and stat.S_ISREG(st.st_mode):
                 self.fail(
-                    '%s "%s" is a file.' % (self.path_type, filename_to_ui(value)),
+                    "{} {!r} is a file.".format(self.path_type, filename_to_ui(value)),
                     param,
                     ctx,
                 )
             if not self.dir_okay and stat.S_ISDIR(st.st_mode):
                 self.fail(
-                    '%s "%s" is a directory.' % (self.path_type, filename_to_ui(value)),
+                    "{} {!r} is a directory.".format(
+                        self.path_type, filename_to_ui(value)
+                    ),
                     param,
                     ctx,
                 )
             if self.writable and not os.access(value, os.W_OK):
                 self.fail(
-                    '%s "%s" is not writable.'
-                    % (self.path_type, filename_to_ui(value)),
+                    "{} {!r} is not writable.".format(
+                        self.path_type, filename_to_ui(value)
+                    ),
                     param,
                     ctx,
                 )
             if self.readable and not os.access(value, os.R_OK):
                 self.fail(
-                    '%s "%s" is not readable.'
-                    % (self.path_type, filename_to_ui(value)),
+                    "{} {!r} is not readable.".format(
+                        self.path_type, filename_to_ui(value)
+                    ),
                     param,
                     ctx,
                 )
@@ -651,7 +670,7 @@ class Tuple(CompositeParamType):
 
     @property
     def name(self):
-        return "<" + " ".join(ty.name for ty in self.types) + ">"
+        return "<{}>".format(" ".join(ty.name for ty in self.types))
 
     @property
     def arity(self):
@@ -660,15 +679,15 @@ class Tuple(CompositeParamType):
     def convert(self, value, param, ctx):
         if len(value) != len(self.types):
             raise TypeError(
-                "It would appear that nargs is set to conflict "
-                "with the composite type arity."
+                "It would appear that nargs is set to conflict with the"
+                " composite type arity."
             )
         return tuple(ty(x, param, ctx) for ty, x in zip(self.types, value))
 
 
 def convert_type(ty, default=None):
-    """Converts a callable or python ty into the most appropriate param
-    ty.
+    """Converts a callable or python type into the most appropriate
+    param type.
     """
     guessed_type = False
     if ty is None and default is not None:
@@ -702,7 +721,7 @@ def convert_type(ty, default=None):
         try:
             if issubclass(ty, ParamType):
                 raise AssertionError(
-                    "Attempted to use an uninstantiated parameter type (%s)." % ty
+                    "Attempted to use an uninstantiated parameter type ({}).".format(ty)
                 )
         except TypeError:
             pass
